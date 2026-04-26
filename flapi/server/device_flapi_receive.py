@@ -41,13 +41,17 @@ capout = Capout(send_stdout)
 
 
 def OnInit():
-    print("\n".join([
-        "Flapi request server",
-        f"Server version: {'.'.join(str(n) for n in consts.VERSION)}",
-        f"Device name: {device.getName()}",
-        f"Device assigned: {bool(device.isAssigned())}",
-        f"FL Studio port number: {device.getPortNumber()}",
-    ]))
+    print(
+        "\n".join(
+            [
+                "Flapi request server",
+                f"Server version: {'.'.join(str(n) for n in consts.VERSION)}",
+                f"Device name: {device.getName()}",
+                f"Device assigned: {bool(device.isAssigned())}",
+                f"FL Studio port number: {device.getPortNumber()}",
+            ]
+        )
+    )
 
 
 class _Exit:
@@ -84,8 +88,7 @@ def client_hello(res: FlapiResponse, data: bytes):
 def client_goodbye(res: FlapiResponse, data: bytes):
     code = int(b64decode(data).decode())
     connected_clients.pop(res.client_id)
-    log.info(
-        f"Client with ID {res.client_id} disconnected with code {code}")
+    log.info(f"Client with ID {res.client_id} disconnected with code {code}")
     res.client_goodbye(code)
 
 
@@ -133,10 +136,10 @@ message_handlers = {
 }
 
 
-def OnSysEx(event: 'FlMidiMsg'):
-    header = event.sysex[1:len(consts.SYSEX_HEADER)+1]  # Sysex header
+def OnSysEx(event: "FlMidiMsg"):
+    header = event.sysex[1 : len(consts.SYSEX_HEADER) + 1]  # Sysex header
     # Remaining sysex data
-    sysex_data = event.sysex[len(consts.SYSEX_HEADER)+1:-1]
+    sysex_data = event.sysex[len(consts.SYSEX_HEADER) + 1 : -1]
 
     # Ignore events that aren't Flapi messages
     if header != consts.SYSEX_HEADER:
@@ -160,9 +163,7 @@ def OnSysEx(event: 'FlMidiMsg'):
 
     if handler is None:
         log.error(f"Unknown handler for message type {message_type}")
-        return res \
-            .fail(message_type, f"Unknown message type {message_type}") \
-            .send()
+        return res.fail(message_type, f"Unknown message type {message_type}").send()
 
     # Capture stdout for the duration of the operation
     try:

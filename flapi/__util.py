@@ -3,6 +3,7 @@
 
 Helper functions
 """
+
 import pickle
 from base64 import b64decode
 from typing import Any
@@ -28,6 +29,4 @@ def format_fn_params(args, kwargs):
 
     # Overall parameters string (avoid invalid syntax by removing extra
     # commas)
-    return f"{args_str}, {kwargs_str}"\
-        .removeprefix(", ")\
-        .removesuffix(", ")
+    return f"{args_str}, {kwargs_str}".removeprefix(", ").removesuffix(", ")

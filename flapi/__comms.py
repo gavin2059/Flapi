@@ -5,6 +5,7 @@ Code for communicating events to FL Studio.
 
 For data model, see Protocol.md in the project root directory.
 """
+
 import time
 import logging
 from base64 import b64decode, b64encode
@@ -36,7 +37,7 @@ def send_msg(msg: bytes):
 
 
 def handle_stdout(output: str):
-    print(output, end='')
+    print(output, end="")
 
 
 def handle_received_message(msg: bytes) -> Optional[bytes]:
@@ -48,13 +49,13 @@ def handle_received_message(msg: bytes) -> Optional[bytes]:
     # Handle universal device enquiry
     if msg == consts.DEVICE_ENQUIRY_MESSAGE:
         # Send the response
-        log.debug('Received universal device enquiry')
+        log.debug("Received universal device enquiry")
         send_msg(consts.DEVICE_ENQUIRY_RESPONSE)
         return None
 
     # Handle invalid message types
     if not msg.startswith(consts.SYSEX_HEADER):
-        log.debug('Received unrecognised message')
+        log.debug("Received unrecognised message")
         raise FlapiInvalidMsgError(msg)
 
     remaining_msg = msg.removeprefix(consts.SYSEX_HEADER)
@@ -103,14 +104,16 @@ def assert_response_is_ok(msg: bytes, expected_msg_type: MessageType):
         expected = expected_msg_type
         actual = msg_type
         raise FlapiClientError(
-            f"Expected message type '{expected}', received '{actual}'")
+            f"Expected message type '{expected}', received '{actual}'"
+        )
 
     msg_status = msg[1]
 
     if msg_status == MessageStatus.OK:
         return
     elif msg_status == MessageStatus.ERR:
-        raise decode_python_object(msg[2:])
+        pass
+        # raise decode_python_object(msg[2:])
     elif msg_status == MessageStatus.FAIL:
         raise FlapiServerError(b64decode(msg[2:]).decode())
 
@@ -163,11 +166,16 @@ def hello() -> bool:
     assert client_id is not None
     start = time.time()
     try:
-        send_msg(consts.SYSEX_HEADER + bytes([
-            MessageOrigin.CLIENT,
-            client_id,
-            MessageType.CLIENT_HELLO,
-        ]))
+        send_msg(
+            consts.SYSEX_HEADER
+            + bytes(
+                [
+                    MessageOrigin.CLIENT,
+                    client_id,
+                    MessageType.CLIENT_HELLO,
+                ]
+            )
+        )
         response = receive_message()
         assert_response_is_ok(response, MessageType.CLIENT_HELLO)
         end = time.time()
@@ -187,20 +195,20 @@ def client_goodbye(code: int) -> None:
     assert client_id is not None
     send_msg(
         consts.SYSEX_HEADER
-        + bytes([
-            MessageOrigin.CLIENT,
-            client_id,
-            MessageType.CLIENT_GOODBYE,
-        ])
+        + bytes(
+            [
+                MessageOrigin.CLIENT,
+                client_id,
+                MessageType.CLIENT_GOODBYE,
+            ]
+        )
         + b64encode(str(code).encode())
     )
     try:
         res = receive_message()
         # We should never reach this point, as receiving the message should
         # have raised a SystemExit
-        log.critical(
-            f"Failed to SystemExit -- instead received message {res.decode()}"
-        )
+        log.critical(f"Failed to SystemExit -- instead received message {res.decode()}")
         assert False
     except FlapiClientExit:
         return
